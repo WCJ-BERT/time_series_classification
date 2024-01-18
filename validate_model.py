@@ -65,7 +65,7 @@ if __name__ == '__main__':
     print(f'use device: {DEVICE}')
 
     # 选择要验证的模型
-    save_model_path = 'saved_model/all_tf 88.24 batch=3.pkl'
+    save_model_path = ''
     file_name = save_model_path.split('/')[-1].split(' ')[0]
 
 
