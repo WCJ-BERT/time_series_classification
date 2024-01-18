@@ -10,6 +10,8 @@ from time import time
 from tqdm import tqdm
 from utils.random_seed import setup_seed
 from utils.visualization import result_visualization
+from utils.data import data_process
+from torch.utils.tensorboard import SummaryWriter
 
 # 用于记录准确率变化
 correct_on_train = []
@@ -22,17 +24,14 @@ time_cost = 0
 class MyDataset(Dataset):
     def __init__(self, csv_file):
         # 读取CSV文件
-        df = pd.read_csv(csv_file).values
-        normal_features = (df[:, 2:7])
-        normal_labels = (df[:, 7:8])
-        normal_labels = normal_labels.reshape((len(df),))
-        # 将特征数据重新组织为三维数组
-        num_features = 5
-        self.data_len = len(df) // num_features
+
+        df = data_process(25,csv_file)  ###25是时间步数量
+        self.features = (df[: , : , 2:7])
+        normal_labels = (df[: , : , 7:8])
+        self.data_len = len(df)
         self.labels = np.zeros((self.data_len,))
-        self.features = normal_features.reshape((self.data_len, num_features, -1))
         for i in range(self.data_len):
-            self.labels[i] = normal_labels[i * 5]
+            self.labels[i] = normal_labels[i][0]
         self.features = self.features.astype(np.float32)
         self.labels = self.labels.astype(np.float32)
 
@@ -44,6 +43,7 @@ class MyDataset(Dataset):
 
 def train():
     net.train()
+    writer = SummaryWriter('logs/' + str(BATCH_SIZE))
     max_accuracy = 0
     pbar = tqdm(total=EPOCH)
     begin = time()
@@ -71,12 +71,15 @@ def train():
                 torch.save(net, f'saved_model/{file_name} batch={BATCH_SIZE}.pkl')
 
         pbar.update()
+        writer.add_scalar('Loss', loss, EPOCH)
 
     os.rename(f'saved_model/{file_name} batch={BATCH_SIZE}.pkl',
               f'saved_model/{file_name} {max_accuracy} batch={BATCH_SIZE}.pkl')
 
     end = time()
     time_cost = round((end - begin) / 60, 2)
+    print('用时：',time_cost)
+    writer.close()
 
     # # 结果图
     # result_visualization(loss_list=loss_list, correct_on_test=correct_on_test, correct_on_train=correct_on_train,
@@ -116,7 +119,7 @@ if __name__ == '__main__':
 
     # 超参数设置
     EPOCH = 100
-    BATCH_SIZE = 3
+    BATCH_SIZE = 512 #####
     LR = 1e-4
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
     print(f'use device: {DEVICE}')
@@ -141,7 +144,7 @@ if __name__ == '__main__':
 
     DATA_LEN = dataset.data_len  # 训练集样本数量
     # d_input = dataset.data_len  # 时间步数量
-    d_input = 5  # 时间步数量
+    d_input = 25  # 时间步数量
     d_channel = 5  # 时间序列维度
     d_output = 5  # 分类类别
 
