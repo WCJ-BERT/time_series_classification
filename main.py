@@ -22,10 +22,10 @@ time_cost = 0
 
 
 class MyDataset(Dataset):
-    def __init__(self, csv_file):
+    def __init__(self, csv_file , d_step):
         # 读取CSV文件
 
-        df = data_process(25,csv_file)  ###25是时间步数量
+        df = data_process(d_step , csv_file)  ###25是时间步数量
         self.features = (df[: , : , 2:7])
         normal_labels = (df[: , : , 7:8])
         self.data_len = len(df)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     # 超参数设置
     EPOCH = 100
-    BATCH_SIZE = 512 #####
+    BATCH_SIZE = 1024 #####
     LR = 1e-4
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
     print(f'use device: {DEVICE}')
@@ -136,15 +136,16 @@ if __name__ == '__main__':
     # 优化器选择
     optimizer_name = 'Adagrad'
 
+    d_step = 40
     ####加载训练、验证数据集
-    dataset = MyDataset("./data/all_tf.csv")
+    dataset = MyDataset("./data/all_tf.csv",d_step)
     train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    testdataset = MyDataset('./data/test.csv')
+    testdataset = MyDataset('./data/test.csv',d_step)
     test_dataloader = torch.utils.data.DataLoader(testdataset, batch_size=BATCH_SIZE, shuffle=True)
 
     DATA_LEN = dataset.data_len  # 训练集样本数量
     # d_input = dataset.data_len  # 时间步数量
-    d_input = 25  # 时间步数量
+    d_input = d_step  # 时间步数量
     d_channel = 5  # 时间序列维度
     d_output = 5  # 分类类别
 
