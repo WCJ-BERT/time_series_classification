@@ -53,7 +53,8 @@ def train():
 
             y_pre, _, _, _, _, _, _ = net(x.to(DEVICE), 'train')
 
-            loss = loss_function(y_pre, y.to(DEVICE))
+            y = y.view(y.size(0) , 1)
+            loss = loss_function(y_pre.to(DEVICE), y.to(DEVICE))
 
             print(f'Epoch:{index + 1}:\t\tloss:{loss.item()}')
             loss_list.append(loss.item())
@@ -119,7 +120,7 @@ if __name__ == '__main__':
 
     # 超参数设置
     EPOCH = 100
-    BATCH_SIZE = 16 #####
+    BATCH_SIZE = 32 #####
     LR = 1e-4
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
     print(f'use device: {DEVICE}')
@@ -151,8 +152,9 @@ if __name__ == '__main__':
     # 创建Transformer模型
     net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                       q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    # 创建loss函数 此处使用 交叉熵损失
-    loss_function = Myloss()
+    # 创建loss函数 此处使用 均方误差
+    # loss_function = Myloss()
+    loss_function = torch.nn.MSELoss()
     if optimizer_name == 'Adagrad':
         optimizer = optim.Adagrad(net.parameters(), lr=LR)
     elif optimizer_name == 'Adam':
