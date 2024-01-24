@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     # 超参数设置
     EPOCH = 100
-    BATCH_SIZE = 512 #####
+    BATCH_SIZE = 16 #####
     LR = 1e-4
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
     print(f'use device: {DEVICE}')
@@ -137,9 +137,9 @@ if __name__ == '__main__':
     optimizer_name = 'Adagrad'
 
     ####加载训练、验证数据集
-    dataset = MyDataset("./data/all_tf.csv")
+    dataset = MyDataset("./data/25_step/all_tf.csv")
     train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    testdataset = MyDataset('./data/test.csv')
+    testdataset = MyDataset('./data/25_step/test.csv')
     test_dataloader = torch.utils.data.DataLoader(testdataset, batch_size=BATCH_SIZE, shuffle=True)
 
     DATA_LEN = dataset.data_len  # 训练集样本数量

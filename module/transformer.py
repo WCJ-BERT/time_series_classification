@@ -57,8 +57,9 @@ class Transformer(Module):
         :param stage: 用于描述此时是训练集的训练过程还是测试集的测试过程  测试过程中均不在加mask机制
         :return: 输出，gate之后的二维向量，step-wise encoder中的score矩阵，channel-wise encoder中的score矩阵，step-wise embedding后的三维矩阵，channel-wise embedding后的三维矩阵，gate
         """
-        # step-wise
+        # step-wise 学习时间步间的，例如我有5个时间步为一个sequence单位，5个一起学
         # score矩阵为 input， 默认加mask 和 pe
+        '''STEP-WISE'''
         encoding_1 = self.embedding_channel(x)
         input_to_gather = encoding_1
 
@@ -79,6 +80,7 @@ class Transformer(Module):
 
         # channel-wise
         # score矩阵为channel 默认不加mask和pe
+        '''CHANNEL-WISE'''
         encoding_2 = self.embedding_input(x.transpose(-1, -2))
         channel_to_gather = encoding_2
 

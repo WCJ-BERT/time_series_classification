@@ -2,7 +2,7 @@ from torch.nn import Module
 import torch
 import torch.nn.functional as F
 
-class FeedForward(Module):
+class FeedForward(Module): ##MLP的两层，全连接层 512 传 512
     def __init__(self,
                  d_model: int,
                  d_hidden: int = 512):
