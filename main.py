@@ -21,16 +21,16 @@ loss_list = []
 time_cost = 0
 
 
-class MyDataset(Dataset):
+class MyDataset(Dataset): # 处理数据的类
     def __init__(self, csv_file , d_step):
         # 读取CSV文件
 
-        df = data_process(d_step , csv_file)  ###25是时间步数量
-        self.features = (df[: , : , 2:7])
-        normal_labels = (df[: , : , 7:8])
+        df = data_process(d_step , csv_file)  # d_step 是时间步数量，data_process会自动拼接数据
+        self.features = (df[: , : , 2:7]) # 指定features 为 2-6 列，从delta_s～delta_d（按第0开始编排）
+        normal_labels = (df[: , : , 7:8]) # 指定label 为 第7列
         self.data_len = len(df)
-        self.labels = np.zeros((self.data_len,))
-        for i in range(self.data_len):
+        self.labels = np.zeros((self.data_len,)) 
+        for i in range(self.data_len): # 实际label需要一个小转换，对应一个sample 一个label，在这里需要思考，如何处理action作为label的情况
             self.labels[i] = normal_labels[i][0]
         self.features = self.features.astype(np.float32)
         self.labels = self.labels.astype(np.float32)
@@ -119,26 +119,27 @@ if __name__ == '__main__':
 
     # 超参数设置
     EPOCH = 100
-    BATCH_SIZE = 1024 #####
-    LR = 1e-4
+    BATCH_SIZE = 1024 
+    LR = 1e-4 # 学习率
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
     print(f'use device: {DEVICE}')
 
-    d_model = 512
-    d_hidden = 1024
+    d_model = 512 # 模型维度
+    d_hidden = 1024 # 隐藏层维度
     q = 8
     v = 8
     h = 8
-    N = 8
-    dropout = 0.2
-    pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
-    mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
+    # q、v、h是注意力机制中的参数
+    N = 8 # 编码期数量
+    dropout = 0.2 # 防止过拟合
+    pe = True    # 设置的是双塔中 score=pe score=channel默认没有pe，是否使用位置编码
+    mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask，是否使用掩码机制
     # 优化器选择
     optimizer_name = 'Adagrad'
 
     d_step = 40
-    ####加载训练、验证数据集
-    dataset = MyDataset("./data/all_tf.csv",d_step)
+    # 加载训练、验证数据集
+    dataset = MyDataset("./data/all_tf.csv",d_step) # 读取数据集，数据处理之后，送到torch的Dataloader
     train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     testdataset = MyDataset('./data/test.csv',d_step)
     test_dataloader = torch.utils.data.DataLoader(testdataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -146,8 +147,8 @@ if __name__ == '__main__':
     DATA_LEN = dataset.data_len  # 训练集样本数量
     # d_input = dataset.data_len  # 时间步数量
     d_input = d_step  # 时间步数量
-    d_channel = 5  # 时间序列维度
-    d_output = 5  # 分类类别
+    d_channel = 5  # 时间序列维度，feature数量
+    d_output = 5  # 输出数据的维度，在这里是对应5个分类
 
     # 创建Transformer模型
     net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
@@ -158,7 +159,6 @@ if __name__ == '__main__':
         optimizer = optim.Adagrad(net.parameters(), lr=LR)
     elif optimizer_name == 'Adam':
         optimizer = optim.Adam(net.parameters(), lr=LR)
-
 
     train()
 
